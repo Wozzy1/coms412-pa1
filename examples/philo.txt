@@ -1,0 +1,61 @@
+MODULE main
+
+VAR 
+   fork: array 0..2 of {0, 1, 2, no-one};   --- three elements in array
+                                            -- each element is of enumerated type
+   p0: process philo(0, fork[0], fork[1]);
+   p1: process philo(1, fork[1], fork[2]);
+   p2: process philo(2, fork[2], fork[0]);
+
+ASSIGN
+-- all forks are on the table at the beginning
+   init(fork[0]) := no-one;
+   init(fork[1]) := no-one;
+   init(fork[2]) := no-one;
+
+
+---------------------------------------------------------------------------
+SPEC AG((p0.state = hungry) -> EF(p0.state = eat)) 
+---------------------------------------------------------------------------
+
+
+-- Always globally either p0 or p1 is not in eating state, i.e., p0 and p1 cannot eat 
+-- at the same time.
+-- SPEC AG((p0.state != eat) | (p1.state != eat))
+---------------------------------------------------------------------------
+
+--SPEC ! EF AG ((p0.state = hungry) & (p1.state = hungry) & (p2.state = hungry))
+--SPEC AG AF !(p0.state=hungry)   
+---------------------------------------------------------------------------
+
+MODULE philo(id, left, right)
+
+VAR 
+   state: {think, hungry, eat, done}; 
+
+ASSIGN
+   init(state) := think; -- everyone is thinking at the beginning
+                 
+   next(left) := case 
+                     (state = hungry) & (left = no-one): id;  --  pick it up
+                     (state = done): no-one;                  --  drop it
+                     TRUE: left;
+                 esac;
+ 
+   next(right) := case
+                     (state = hungry) & (left = id) & (right = no-one): id;  --  pick it up
+                     (state = done): no-one;                  --  drop it
+                     TRUE: right;
+                  esac;
+    
+   next(state) := case
+                      (state = think): {think, hungry};
+                      (state = hungry) & (left = id) & (right = id): eat;
+                      (state = eat): {done};
+                      (state = done): think;
+                      TRUE: state;
+                  esac;  
+
+FAIRNESS running;
+--FAIRNESS !(state = think)
+

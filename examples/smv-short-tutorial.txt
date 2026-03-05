@@ -1,0 +1,126 @@
+This does not replace the tutorial available on NuSMV site.
+All directives are in command line. 
+
+
+Running NuSMV
+-------------
+
+> NuSMV filename
+-- This will load and compile the NuSMV file, construct the underlying
+-- Kripke structure and evaluate whether each of the start/initial states
+-- of the Kripke structure is a model for the given set of properties or not 
+-- If a given property is not satisfied: output is a counter-example.
+
+
+> NuSMV -int [filename]
+-- will start the NuSMV in interactive mode 
+
+> set input_file filename 
+-- if you do not provide the filename as part of the first directive
+
+> read_model [-i filename]
+> go
+-- this will set the model for simulation 
+> pick_state [-v] [-r | -i]
+-- which state to start the simuation from
+-- v: verbose
+-- r: let NuSMV randomly pick an initial state 
+-- i: pick an initial state interactively (NuSMV will provide options and 
+      user will have to pick one of the states)
+
+> simulate [-p | -v] [-r | -i] -k steps
+-- generate at most "steps" from the current state
+-- p: print the state variable-values which change with transition
+-- v: print all the state variable values
+-- r: random picking at each step
+-- i: interactive picking at each step
+
+> reset
+-- to unload the loaded model and then set and read_model a new model.
+
+> quit
+
+Basics of the language for system description
+---------------------------------------------
+
+Variable declaration:
+*********************
+
+varible domain: finite
+- boolean
+- enumerated -- e.g., {busy, not-busy}
+- range -- e.g., 1..99
+
+arrays:
+VAR
+   a : array 5..50 of 0..10;
+-- this is an array with indices starting from 5 to 50 and each index 
+-- contains values in domain 0..10
+
+Variable Updates:
+*****************
+
+Inside ASSIGN block
+
+- Variable can be initialized at most once.
+- The next state valuation of a variable cannot depend on its own next state
+valuation (either directly or directly)
+Example: 
+
+next(a) := a | next(a);
+OR
+next(a) := next(b);
+next(b) := next(a);
+
+Process vs. No Process in Module Declaration
+********************************************
+
+If a module invocation is done using process keyword, then NuSMV
+considers the module to behave asynchronously with other modules
+(i.e., this module cannot move if other modules are being scheduled
+during a step).
+
+Otherwise, the module behaves synchronously (i.e., at each step
+the module is scheduled to move).
+
+FAIRNESS
+********
+
+Fairness directive is followed by some propositional logic condition.
+The fairness constraint ensures that only the computational paths
+(resulting from unfolding of the Kripke Structure) which satisfy the
+constraint infintely often are considered during model checking.
+
+For instance: 
+Module main
+VAR
+  x: boolean;
+
+ASSIGN
+  init(x) := FALSE;
+
+  next(x) := 
+      case 
+          x = FALSE: TRUE;
+          x = TRUE : {FALSE, TRUE};
+     esac
+
+FAIRNESS (x = FALSE);
+       
+will imply that the model checker will consider the computation paths
+where the states satisfying x = FALSE appear infinitely often. The 
+state-space of the above module that will be considered under
+fairness will be:
+
+(x = FALSE) -> (x = TRUE) -> (x = FALSE) -> ...
+
+while without the fairness, it would be 
+(x = FALSE) -> (x = TRUE) -> (x = FALSE) -> (x = TRUE) -> (x = FALSE) -> ...
+                                                       -> (x = TRUE) -> ... 
+                          -> (x = TRUE) -> (x = FALSE) -> ...
+                                        -> (x = TRUE) -> ...
+
+
+                       
+
+

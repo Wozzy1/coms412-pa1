@@ -1,0 +1,44 @@
+MODULE proc(own, other, turn, ownturn)
+-- no VAR block
+
+
+ASSIGN
+  init(own) := n;
+  next(own) := case
+                  (own = n): {t, n};
+                  (own = t) & (other = n): c;
+                  (own = t) & (other = t) & (turn = ownturn): c;
+                  (own = c): {n};
+                  TRUE: own;
+               esac;
+
+  next(turn) := case
+                   (turn = ownturn) & (own = c): 1 - turn;
+                   TRUE: turn;
+                esac;
+
+FAIRNESS running;              
+
+
+MODULE main
+
+
+VAR
+  state0: {n, t, c};   -- states of process 0
+  pr0   : process proc(state0, state1, turn, 0);  -- process 0 
+
+  state1: {n, t, c};   -- states of process 1
+  pr1   : process proc(state1, state0, turn, 1);  -- process 1
+
+  turn  : {0, 1};
+
+ASSIGN
+  init(turn) := 0;
+
+-- SPEC AG((state0 != c) | (state1 != c)) -- safety property
+-- SPEC EF((state0 = c) & (state1 = c)) -- negation of safety property
+-- SPEC AG((state0 = t) -> EF(state0 = c))
+SPEC AG((state1 = t) -> AF(state1 = c)) -- liveness    
+
+--Try to change the design specification to 
+--conform the liveness properties. 

@@ -1,0 +1,55 @@
+-- goat to the right
+-- cabbage to the right
+-- goat to the left
+-- wolf to the right
+-- goat to the right
+
+MODULE main
+
+VAR
+	farmer:  {left, right};
+	goat:    {left, right};
+	cabbage: {left, right};
+	wolf:    {left, right};
+	move:    {mv_goat,mv_wolf,mv_cabbage};   
+                                                 -- just a variable to keep track of who may moving
+                                                 -- do not initialize this variable and do not
+                                                 -- define "next" of this variable
+
+ASSIGN
+	init(farmer)   := left;
+	init(goat)     := left;
+	init(cabbage)  := left;
+	init(wolf)     := left;
+
+	next(farmer) :=
+	case
+		(farmer = left): right;
+		(farmer = right): left;
+	esac;	
+
+	next(goat) :=
+	case
+		(farmer = goat) & (move = mv_goat) : {left, right};
+                TRUE                               : goat;
+	esac;
+	
+	next(wolf) :=
+	case
+		(farmer = wolf) & (move = mv_wolf) : {left, right};
+                TRUE                               : wolf;
+	esac;
+	
+	next(cabbage) :=
+	case
+		(farmer = cabbage) & (move = mv_cabbage) : {left, right};
+                TRUE                              : cabbage;
+	esac;
+
+
+-- EU: there exists a path where safety is satisfied until everyone is 
+--      on the right bank.
+--      safety: (goat = wolf) -> (goat = farmer) & (goat = cabbage) -> (farmer = goat)
+
+
+SPEC  ! E [ ( ((goat = wolf) -> (goat = farmer)) & ((goat = cabbage) -> (farmer = goat)) )   U (farmer = right & wolf = right & cabbage = right & goat = right) ]
