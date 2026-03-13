@@ -1,1 +1,37 @@
-module proc 
+MODULE proc(pn, s, state, oproc)
+
+VAR
+  y: {0, 1};
+
+ASSIGN
+  init(y) := 0;
+  next(y) := case
+               (state = noncrit): 1;
+               (state = waiting): y;
+               (state = crit): 0;
+             esac;
+  next(state) := case
+                   (state = noncrit): waiting;
+                   (state = waiting) & ((oproc.y != 0) & (s = pn)): {waiting};
+                   (state = waiting) & ((oproc.y = 0) | (s != pn)): crit;
+                   (state = crit): noncrit;
+                 esac;
+  next(s) := case
+               (state = noncrit): pn;
+               (state = waiting): s;
+               (state = crit): s;
+             esac;
+
+FAIRNESS running;
+
+MODULE main
+
+VAR
+  s: {0, 1};
+  state0: {noncrit, waiting, crit};
+  state1: {noncrit, waiting, crit};
+  proc0: process proc(0, s, state0, proc1);
+  proc1: process proc(1, s, state1, proc0);
+
+ASSIGN
+  init(s) := 1;
