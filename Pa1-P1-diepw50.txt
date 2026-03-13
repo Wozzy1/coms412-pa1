@@ -35,3 +35,12 @@ VAR
 
 ASSIGN
   init(s) := 1;
+
+-- SPEC EF(proc0.state = crit & proc1.state = crit)
+
+-- as global property, any state has some future state where there is a conflict -> returns false
+-- SPEC AG(EF(proc0.state = crit & proc1.state = crit)) -- both proc never in crit zone together
+
+-- SPEC AG((proc0.state = waiting -> AF(proc0.state = crit)) & (proc1.state = waiting -> AF(proc1.state = crit))) -- proccess liveness
+
+SPEC EF(EG(proc0.state = waiting))
