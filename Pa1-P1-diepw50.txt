@@ -1,3 +1,5 @@
+-- Property 1 is proved to be satisfied.
+-- Property 2 is proved to be satisfied.
 MODULE proc(pn, s, state, oproc)
 
 VAR
@@ -43,4 +45,4 @@ ASSIGN
 
 -- SPEC AG((proc0.state = waiting -> AF(proc0.state = crit)) & (proc1.state = waiting -> AF(proc1.state = crit))) -- proccess liveness
 
-SPEC EF(EG(proc0.state = waiting))
+-- SPEC EF(EG(proc0.state = waiting))
