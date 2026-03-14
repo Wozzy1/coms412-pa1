@@ -1,0 +1,91 @@
+-- Safety property holds and there exists a plan such that everyone gets across safely.
+MODULE main
+
+VAR
+  -- things to move
+  -- 3 fett sisters
+  -- 3 padawans
+  
+  x: {isi, iju};
+  y: {isi, iju};
+  z: {isi, iju};
+  
+  p1: {isi, iju};
+  p2: {isi, iju};
+  p3: {isi, iju};
+
+  move : {
+    mx, my, mz,          -- sister alone
+    mxp1, myp2, mzp3,    -- sister with her padawan
+    mxy, mxz, myz        -- two sisters
+  };
+
+ASSIGN
+  init(x)  := isi;
+  init(y)  := isi;
+  init(z)  := isi;
+
+  init(p1) := isi;
+  init(p2) := isi;
+  init(p3) := isi;
+
+  next(x) :=
+  case
+    move = mx & TRUE : {isi, iju};
+    move = mxp1 & x = p1 : {isi, iju};
+    move = mxy & x = y : {isi, iju};
+    move = mxz & x = z : {isi, iju};
+    TRUE : x;
+  esac;
+
+  next(y) :=
+  case
+    move = my & TRUE : {isi, iju};
+    move = myp2 & y = p2 : {isi, iju};
+    move = mxy & x = y : {isi, iju};
+    move = myz & y = z : {isi, iju};
+    TRUE : y;
+  esac;
+
+  next(z) :=
+  case
+    move = mz & TRUE : {isi, iju};
+    move = mzp3 & z = p3 : {isi, iju};
+    move = mxz & x = z : {isi, iju};
+    move = myz & y = z : {isi, iju};
+    TRUE : z;
+  esac;
+
+  next(p1) :=
+  case
+    move = mxp1 & x = p1 : {isi, iju};
+    TRUE : p1;
+  esac;
+
+  next(p2) :=
+  case
+    move = myp2 & y = p2 : {isi, iju};
+    TRUE : p2;
+  esac;
+
+  next(p3) :=
+  case
+    move = mzp3 & z = p3 : {isi, iju};
+    TRUE : p3;
+  esac;
+
+DEFINE safe := (
+  !((p1 = y | p1 = z) & p1 != x) & -- p1 is with x and not anyone else
+  !((p2 = x | p2 = z) & p2 != y) & -- p2 is with y and not anyone else
+  !((p3 = x | p3 = y) & p3 != z)   -- p3 is with z and not anyone else
+);
+
+-- this is the safety property where none of the padawons are with someone untrustworthy
+SPEC AF EG (safe);
+
+-- checking that there exists some future state where all are moved over to the other planet.
+SPEC EF (x = iju & y = iju & z = iju & p1 = iju & p2 = iju & p3 = iju);
+
+-- there exists a path where safety property is held until some future state where all are moved to the other planet
+-- essentially, theres a path where they get to the other planet safely.
+SPEC E[safe U (x = iju & y = iju & z = iju & p1 = iju & p2 = iju & p3 = iju)];
